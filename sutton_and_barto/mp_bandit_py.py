@@ -3,13 +3,24 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+class RunningAverage:
+
+    def __init__(self):
+        self.n = 0
+        self.avg = 0
+
+    def update(self, value):
+        self.n += 1
+        self.avg += (1 / self.n) * (value - self.avg)
+
+
 class MultiArmBandit:
 
-    def __init__(self, k_arms):
-        mu = 0.0
-        sigma = 1.0
+    def __init__(self, k_arms, mu=0.0, sigma=1.0):
+        self.mu = mu
+        self.sigma = sigma
         self.random_state = np.random.RandomState()
-        self.q_true = self.random_state.normal(mu, sigma, k_arms)
+        self.q_true = self.random_state.normal(self.mu, self.sigma, k_arms)
 
     def get_reward_for_arm(self, k_arm):
         mu = self.q_true[k_arm]
@@ -29,9 +40,12 @@ def run_one_bandit(k_arms, n_steps, epsilon):
         #--------------------------------------------------------
         if random_state.uniform() > epsilon:
             # exploit = choose argmax (break ties randomly)
-            q_max = np.max(q_estimates)
-            i_action = random_state.choice([
-                ii for ii, qq in enumerate(q_estimates) if qq == q_max])
+#            q_max = np.max(q_estimates)
+#            i_action = random_state.choice([
+#                ii for ii, qq in enumerate(q_estimates) if qq == q_max])
+            i_action = random_state.choice(
+                np.argwhere(q_estimates == np.max(q_estimates)).squeeze(axis=1)
+            )
         else:
             # explore = choose random
             i_action = random_state.randint(low=0, high=k_arms)
